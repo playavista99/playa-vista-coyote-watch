@@ -418,11 +418,19 @@
       .header-menu {
         position: absolute; top: calc(100% + 10px); right: 0; z-index: 55;
         width: min(348px, calc(100vw - 32px));
-        background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-        box-shadow: 0 14px 36px rgba(28, 42, 33, 0.22), 0 2px 8px rgba(28, 42, 33, 0.12);
+        background: #fff9e8; color: #1c2a21;
+        border: 1px solid #e3d5ae; border-radius: 18px;
+        box-shadow: 0 18px 44px rgba(28, 42, 33, 0.30), 0 4px 14px rgba(28, 42, 33, 0.16);
         padding: 6px; text-align: left;
       }
       .header-menu[hidden] { display: none; }
+      .header-menu .menu-item { color: #1c2a21; }
+      .header-menu .menu-item__title, .header-menu .menu-block__title { color: #1c2a21; }
+      .header-menu .menu-item__sub, .header-menu .menu-block__sub { color: #4c6152; }
+      .header-menu .menu-item__chev { color: #6d816f; }
+      .header-menu .menu-item__ic, .header-menu .menu-block__ic { background: #e4ecd0; color: #14532d; }
+      .header-menu .menu-item + .menu-item, .header-menu .menu-item + .menu-block, .header-menu .menu-block + .menu-item { border-top-color: #e9dcba; }
+      .header-menu a.menu-item:active, .header-menu button.menu-item:active { background: #f6ebc9; }
       .menu-item {
         display: flex; gap: 12px; align-items: flex-start; width: 100%;
         background: none; border: none; border-radius: 12px;
@@ -626,6 +634,16 @@
                 </span>
                 <span class="menu-item__chev" aria-hidden="true">›</span>
               </button>
+              <a class="menu-item" href="https://chat.whatsapp.com/KnDNz403jH48WdrmGV92yA" target="_blank" rel="noopener" role="menuitem">
+                <span class="menu-item__ic" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.8 8.6c.3-.7 1.3-.7 1.6 0l.3.8c.1.4 0 .8-.3 1.1.9 1.5 2 2.4 3.4 3.1.3-.3.7-.4 1.1-.2l.8.4c.6.3.6 1.3 0 1.6-2.9 1.7-8.3-3.4-6.9-6.8Z" fill="currentColor"/></svg>
+                </span>
+                <span class="menu-item__txt">
+                  <span class="menu-item__title">Join the WhatsApp group</span>
+                  <span class="menu-item__sub">Chat with neighbors about sightings.</span>
+                </span>
+                <span class="menu-item__chev" aria-hidden="true">↗</span>
+              </a>
               <a class="menu-item" href="https://apps.wildlife.ca.gov/wir" target="_blank" rel="noopener" role="menuitem">
                 <span class="menu-item__ic" aria-hidden="true">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3 4.5 6v5c0 4.6 3.1 8.4 7.5 10 4.4-1.6 7.5-5.4 7.5-10V6L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 8v4.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="15.8" r="1.15" fill="currentColor"/></svg>
@@ -813,7 +831,7 @@
         <p class="fineprint">A healthy coyote passing through is normal for Playa Vista — the Ballona Wetlands are its home turf. This tracker is about knowing before you walk, not about removing wildlife.</p>
       </div>
 
-      <p class="version-line">Playa Vista Coyote Watch · v1.7 · test build</p>
+      <p class="version-line">Playa Vista Coyote Watch · v1.8 · test build</p>
     </div>
 
     <div class="sheet-backdrop" id="sheetBackdrop"></div>
