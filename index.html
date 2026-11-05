@@ -401,6 +401,7 @@
       .safety li { margin-bottom: 8px; }
       .safety a { color: #bfe6cb; font-weight: 700; }
       .safety .fineprint { font-size: 13.5px; opacity: 0.8; padding-bottom: 12px; }
+      .version-line { text-align: center; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
 
       /* Report sheet */
       .sheet-backdrop {
@@ -613,13 +614,13 @@
               <div class="phone__app">Playa Vista Coyote Watch</div>
               <div id="notifList">
               <div class="notif">
-                <div class="notif__head"><span>NTFY · PV-COYOTE-WATCH-YR9GHUZORA1Q</span><span>12 min ago</span></div>
+                <div class="notif__head"><span>NTFY · PV-COYOTE-WATCH-7XK2</span><span>12 min ago</span></div>
                 <div class="notif__title"><span class="dot dot--yellow"></span>Coyote reported — Village Green</div>
                 <div class="notif__body">Watching / lingering · heading east. Tap to open on the map.</div>
                 <div class="notif__pri notif__pri--high">High · Priority 4</div>
               </div>
               <div class="notif">
-                <div class="notif__head"><span>NTFY · PV-COYOTE-WATCH-YR9GHUZORA1Q</span><span>1 hr ago</span></div>
+                <div class="notif__head"><span>NTFY · PV-COYOTE-WATCH-7XK2</span><span>1 hr ago</span></div>
                 <div class="notif__title"><span class="dot dot--green"></span>Coyote reported — Concert Park NW</div>
                 <div class="notif__body">Passing through. Tap to open on the map.</div>
                 <div class="notif__pri notif__pri--normal">Default · Priority 3</div>
@@ -643,7 +644,7 @@
                 </span>
               </li>
               <li>Tap the <strong>+</strong> in ntfy and subscribe to this topic:<br />
-                <span class="topic" id="ntfyTopic">pv-coyote-watch-yr9ghuzora1q</span>
+                <span class="topic" id="ntfyTopic">pv-coyote-watch-7xk2</span>
                 <button class="mini-btn" id="copyTopicBtn" type="button" style="margin-left:8px;">Copy topic</button>
               </li>
               <li>That’s it — new reports nearby now arrive as notifications. Tapping one opens it on the map.</li>
@@ -680,6 +681,8 @@
         </ul>
         <p class="fineprint">A healthy coyote passing through is normal for Playa Vista — the Ballona Wetlands are its home turf. This tracker is about knowing before you walk, not about removing wildlife.</p>
       </div>
+
+      <p class="version-line">Playa Vista Coyote Watch · v1.6 · test build</p>
     </div>
 
     <div class="sheet-backdrop" id="sheetBackdrop"></div>
@@ -1234,7 +1237,7 @@
           (s.count > 1 ? '<span class="tag">' + s.count + " coyotes</span>" : "") +
           (s.heading ? '<span class="tag">Heading ' + esc(s.heading) + "</span>" : "") +
           (s.dog ? '<span class="tag">Reporter had a dog</span>' : "") + "</div>" +
-          (s.photo ? '<div class="photo"><img src="' + s.photo + '" alt="Photo from this coyote report" loading="lazy" /></div>' : "") +
+          (s.photo ? '<div class="photo"><img src="' + esc(s.photo) + '" alt="Photo from this coyote report" loading="lazy" /></div>' : "") +
           '<div class="actions">' +
           '<button class="btn btn--flag" data-flag="' + s.id + '" type="button">Flag this report</button>' +
           (sev === "red" ? '<a class="btn btn--danger-link" href="https://apps.wildlife.ca.gov/wir" target="_blank" rel="noopener">Also file with CDFW</a>' : "") +
