@@ -566,8 +566,8 @@
       </section>
 
       <section aria-labelledby="alertsH">
-        <h2 id="alertsH">Alerts are being switched on</h2>
-        <p class="sec-sub">Soon, each new report will go out as a push alert through the free <strong>ntfy</strong> app — no phone numbers collected, no texting bill. Red reports will send as <em>urgent</em> and can ring through silent mode. The alert-sending piece is being built next — here’s a preview of how it’ll look:</p>
+        <h2 id="alertsH">Alerts on your phone — now live</h2>
+        <p class="sec-sub">Alerts are <strong>on</strong>. When a neighbor files a report, subscribers get a push alert through the free <strong>ntfy</strong> app within moments — no phone numbers collected, no texting bill. Reports marked <em>following</em> or <em>aggressive</em> send as <em>urgent</em> and can ring through silent mode. Here’s an example of what an alert looks like:</p>
         <div class="alerts-grid">
           <div class="phone" aria-label="Example phone showing ntfy notifications">
             <div class="phone__screen">
@@ -575,13 +575,13 @@
               <div class="phone__app">Playa Vista Coyote Watch</div>
               <div id="notifList">
               <div class="notif">
-                <div class="notif__head"><span>NTFY · PV-COYOTE-WATCH-7XK2</span><span>12 min ago</span></div>
+                <div class="notif__head"><span>NTFY · PV-COYOTE-WATCH-YR9GHUZORA1Q</span><span>12 min ago</span></div>
                 <div class="notif__title"><span class="dot dot--yellow"></span>Coyote reported — Village Green</div>
                 <div class="notif__body">Watching / lingering · heading east. Tap to open on the map.</div>
                 <div class="notif__pri notif__pri--high">High · Priority 4</div>
               </div>
               <div class="notif">
-                <div class="notif__head"><span>NTFY · PV-COYOTE-WATCH-7XK2</span><span>1 hr ago</span></div>
+                <div class="notif__head"><span>NTFY · PV-COYOTE-WATCH-YR9GHUZORA1Q</span><span>1 hr ago</span></div>
                 <div class="notif__title"><span class="dot dot--green"></span>Coyote reported — Concert Park NW</div>
                 <div class="notif__body">Passing through. Tap to open on the map.</div>
                 <div class="notif__pri notif__pri--normal">Default · Priority 3</div>
@@ -590,7 +590,7 @@
             </div>
           </div>
           <div class="alerts-side">
-            <h3>Get ready in about 2 minutes</h3>
+            <h3>Subscribe in about 2 minutes</h3>
             <ol class="steps">
               <li>Install the free <strong>ntfy</strong> app:
                 <span class="store-badges" id="storeBadges">
@@ -605,12 +605,12 @@
                 </span>
               </li>
               <li>Tap the <strong>+</strong> in ntfy and subscribe to this topic:<br />
-                <span class="topic">pv-coyote-watch-7xk2</span>
+                <span class="topic">pv-coyote-watch-yr9ghuzora1q</span>
                 <button class="mini-btn" id="copyTopic" type="button">Copy topic</button>
               </li>
-              <li>That’s it — once alerts are switched on, new reports nearby arrive as notifications. Tapping one opens it on the map.</li>
+              <li>That’s it — new reports nearby now arrive as notifications. Tapping one opens it on the map.</li>
             </ol>
-            <p>That topic name is a placeholder. At launch, the real topic will be a different hard-to-guess name — it works like a password — shared only through Vicki’s Playa Vista Friends email.</p>
+            <p>Keep that topic name to yourself: it’s a hard-to-guess name that works like a password, and it’s shared only through Vicki’s Playa Vista Friends email.</p>
             <p>Don’t want another app? A text-message option is planned as a fallback.</p>
           </div>
         </div>
@@ -1199,9 +1199,9 @@
         toastTimer = setTimeout(function () { t.classList.remove("show"); }, 4200);
       }
 
-      /* ---------- ntfy topic (alerts are being switched on next) ---------- */
+      /* ---------- ntfy topic (alerts are live) ---------- */
       document.getElementById("copyTopic").addEventListener("click", function () {
-        var topic = "pv-coyote-watch-7xk2";
+        var topic = "pv-coyote-watch-yr9ghuzora1q";
         function done(ok) { showToast(ok ? "Topic copied — paste it into the ntfy app." : "Topic is: " + topic); }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(topic).then(function () { done(true); }, function () { done(false); });
