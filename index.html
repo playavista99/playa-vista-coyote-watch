@@ -417,18 +417,36 @@
       .safety .fineprint { font-size: 13.5px; opacity: 0.8; padding-bottom: 12px; }
       .version-line { text-align: center; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
 
-      /* Header menu (hamburger, top right) */
-      .lead__row { display: flex; align-items: flex-start; gap: 14px; }
-      .lead__main { flex: 1; min-width: 0; }
-      .menu-wrap { position: relative; flex: none; }
-      .menu-btn {
-        width: 52px; height: 52px; border-radius: 14px;
-        background: var(--card); color: var(--ink);
-        border: 1.5px solid var(--line); box-shadow: var(--shadow);
-        font-size: 25px; line-height: 1;
+      /* Title bar (site name + menu, top of page) */
+      .titlebar { background: #1d3b2a; color: #fff9e8; }
+      .titlebar__inner {
+        max-width: 720px; margin: 0 auto; padding: 10px 16px;
+        min-height: 66px; display: flex; align-items: center; gap: 12px;
+      }
+      .titlebar__brand { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px; }
+      .titlebar__mark {
+        width: 42px; height: 42px; border-radius: 50%; flex: none;
+        background: rgba(255, 249, 232, 0.10);
+        border: 1px solid rgba(255, 249, 232, 0.22);
         display: flex; align-items: center; justify-content: center;
       }
-      .menu-btn:active { background: var(--card-2); }
+      .titlebar__name {
+        font-family: "Archivo", "Public Sans", sans-serif;
+        font-size: 20px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15;
+        color: #fff9e8;
+      }
+      @media (max-width: 560px) { .titlebar__name { font-size: 18px; } }
+
+      /* Header menu (hamburger, right end of the title bar) */
+      .menu-wrap { position: relative; flex: none; }
+      .menu-btn {
+        width: 48px; height: 48px; border-radius: 12px;
+        background: rgba(255, 249, 232, 0.08); color: #fff9e8;
+        border: 1.5px solid rgba(255, 249, 232, 0.38);
+        font-size: 24px; line-height: 1;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .menu-btn:active { background: rgba(255, 249, 232, 0.18); }
       .header-menu {
         position: absolute; top: calc(100% + 10px); right: 0; z-index: 55;
         width: min(348px, calc(100vw - 32px));
@@ -628,14 +646,15 @@
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <div class="lead">
-        <div class="lead__row">
-          <div class="lead__main">
-            <h1>Check before you walk</h1>
-            <p>Live map of coyote reports around Playa Vista — Concert Park, the Runway, Bluff Creek and the Ballona edge.</p>
-          </div>
-          <div class="menu-wrap">
+    <header class="titlebar">
+      <div class="titlebar__inner">
+        <div class="titlebar__brand">
+          <span class="titlebar__mark" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="15.5" rx="4.2" ry="3.4" fill="#e8a33d"/><circle cx="5.6" cy="10.4" r="1.9" fill="#e8a33d"/><circle cx="9.4" cy="7.6" r="2" fill="#e8a33d"/><circle cx="14.6" cy="7.6" r="2" fill="#e8a33d"/><circle cx="18.4" cy="10.4" r="1.9" fill="#e8a33d"/></svg>
+          </span>
+          <span class="titlebar__name">Playa Vista Coyote Watch</span>
+        </div>
+        <div class="menu-wrap">
             <button class="menu-btn" id="menuBtn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false" aria-controls="headerMenu">☰</button>
             <div class="header-menu" id="headerMenu" role="menu" aria-label="More options" hidden>
               <button class="menu-item" id="menuInstallBtn" type="button" role="menuitem">
@@ -700,8 +719,14 @@
                 <span class="menu-item__chev" aria-hidden="true">›</span>
               </button>
             </div>
-          </div>
         </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <div class="lead">
+        <h1>Check before you walk</h1>
+        <p>Live map of coyote reports around Playa Vista — Concert Park, the Runway, Bluff Creek and the Ballona edge.</p>
       </div>
 
       <div class="deep-note" id="deepLinkNote" role="status" hidden>
@@ -845,7 +870,7 @@
         <p class="fineprint">A healthy coyote passing through is normal for Playa Vista — the Ballona Wetlands are its home turf. This tracker is about knowing before you walk, not about removing wildlife.</p>
       </div>
 
-      <p class="version-line">Playa Vista Coyote Watch · v1.9 · test build</p>
+      <p class="version-line">Playa Vista Coyote Watch · v1.10 · test build</p>
     </div>
 
     <div class="sheet-backdrop" id="sheetBackdrop"></div>
