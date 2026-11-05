@@ -316,11 +316,25 @@
       }
       @media (prefers-color-scheme: dark) { .install-block .for-you { color: #0e130f; } }
       .install-block .steps { margin-top: 8px; }
-      .install-note {
-        margin-top: 12px; font-size: 14.5px; background: var(--amber-bg); color: var(--ink);
-        border-radius: 10px; padding: 10px 12px;
-      }
       .install-block p { color: var(--muted); margin: 6px 0 0; font-size: 15.5px; }
+      #installSheet [hidden] { display: none !important; }
+      .install-native-btn {
+        width: 100%; min-height: 54px; margin-top: 10px;
+        background: var(--pine-deep); color: #eef7ef; border: none; border-radius: 12px;
+        font-family: "Archivo", sans-serif; font-size: 17.5px; font-weight: 800;
+      }
+      @media (prefers-color-scheme: dark) { .install-native-btn { color: #0e130f; } }
+      .install-native-btn:active { opacity: 0.88; }
+
+      /* "See all steps" safety-net expander */
+      .install-all { margin-top: 12px; text-align: center; }
+      .install-all__toggle {
+        background: none; border: none; color: var(--muted);
+        font-size: 14.5px; font-weight: 600; padding: 10px 12px; min-height: 44px;
+        display: inline-flex; align-items: center; gap: 6px;
+      }
+      .install-all__chev { display: inline-block; transition: transform 0.15s; }
+      .install-all__toggle[aria-expanded="true"] .install-all__chev { transform: rotate(180deg); }
 
       /* Alerts / phone mockup */
       .alerts-grid { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 16px; align-items: flex-start; }
@@ -608,7 +622,7 @@
       @media (prefers-color-scheme: dark) { .toast { color: #0e130f; } }
       .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
       @media (prefers-reduced-motion: reduce) {
-        .toast, .toggle, .toggle::after { transition: none; }
+        .toast, .toggle, .toggle::after, .install-all__chev { transition: none; }
         .spin__ring { animation: none; opacity: 0.6; transform: scale(0.9); }
       }
     </style>
@@ -831,7 +845,7 @@
         <p class="fineprint">A healthy coyote passing through is normal for Playa Vista — the Ballona Wetlands are its home turf. This tracker is about knowing before you walk, not about removing wildlife.</p>
       </div>
 
-      <p class="version-line">Playa Vista Coyote Watch · v1.8 · test build</p>
+      <p class="version-line">Playa Vista Coyote Watch · v1.9 · test build</p>
     </div>
 
     <div class="sheet-backdrop" id="sheetBackdrop"></div>
@@ -940,34 +954,57 @@
       <p class="sheet-sub">It opens full-screen like an app — no App Store, no download, nothing to sign up for. Takes about 20 seconds.</p>
 
       <div id="installBlocks">
-        <div class="install-block" id="installIOS">
+        <div class="install-block" id="installIOSSafari" hidden>
           <h3>iPhone &amp; iPad — Safari <span class="for-you" data-foryou hidden>For you</span></h3>
           <ol class="steps">
             <li>Tap the <strong>Share</strong> button — the square with an arrow pointing up — in Safari’s toolbar.</li>
             <li>Scroll down and tap <strong>“Add to Home Screen.”</strong></li>
             <li>Tap <strong>“Add”</strong> — the Coyote Watch icon lands on your home screen and opens full-screen like an app.</li>
           </ol>
-          <p class="install-note">Works in Safari — if you’re viewing this inside another app’s browser, open the link in Safari first.</p>
         </div>
 
-        <div class="install-block" id="installAndroid">
-          <h3>Android — Chrome <span class="for-you" data-foryou hidden>For you</span></h3>
+        <div class="install-block" id="installIOSChrome" hidden>
+          <h3>iPhone — Chrome <span class="for-you" data-foryou hidden>For you</span></h3>
           <ol class="steps">
+            <li>Tap the <strong>Share</strong> button at the right end of Chrome’s address bar — or tap the <strong>⋯</strong> menu and choose <strong>“Share…”</strong></li>
+            <li>In the share sheet, scroll down and tap <strong>“Add to Home Screen.”</strong></li>
+            <li>Tap <strong>“Add”</strong> — the Coyote Watch icon lands on your home screen and opens full-screen like an app.</li>
+          </ol>
+        </div>
+
+        <div class="install-block" id="installAndroidChrome" hidden>
+          <h3>Android — Chrome <span class="for-you" data-foryou hidden>For you</span></h3>
+          <div id="installNativeWrap" hidden>
+            <button class="install-native-btn" id="installNativeBtn" type="button">Install Coyote Watch</button>
+            <p>Your browser can install it directly — one tap, and the icon lands on your home screen.</p>
+          </div>
+          <ol class="steps" id="installAndroidSteps">
             <li>Tap the <strong>⋮</strong> menu in Chrome.</li>
-            <li>Tap <strong>“Install app”</strong> (or “Add to Home screen”).</li>
+            <li>Tap <strong>“Install app”</strong> (if you don’t see it, tap “Add to Home screen” instead).</li>
             <li>Confirm — the icon lands on your home screen.</li>
           </ol>
         </div>
 
-        <div class="install-block" id="installOther">
-          <h3>On a computer? <span class="for-you" data-foryou hidden>For you</span></h3>
-          <p>Coyote Watch is made for phones — open this page on your phone, then:</p>
+        <div class="install-block" id="installInApp" hidden>
+          <h3>One step first <span class="for-you" data-foryou hidden>For you</span></h3>
+          <p>You’re viewing this inside another app’s built-in browser, which can’t add pages to your home screen. Open this page in your real browser first:</p>
           <ol class="steps">
-            <li><strong>iPhone:</strong> in Safari, tap Share → “Add to Home Screen” → “Add.”</li>
-            <li><strong>Android:</strong> in Chrome, tap the ⋮ menu → “Install app” → confirm.</li>
+            <li>Tap this app’s <strong>⋯</strong> menu (or its <strong>Share</strong> icon) and choose <strong>“Open in Safari”</strong> on iPhone or <strong>“Open in Chrome”</strong> on Android.</li>
           </ol>
-          <p>The icon lands on the home screen and the tracker opens full-screen, just like an app.</p>
+          <p>Once it opens there, tap <strong>“Get the app”</strong> again and you’ll see the steps for your browser.</p>
         </div>
+
+        <div class="install-block" id="installDesktop" hidden>
+          <h3>On a computer <span class="for-you" data-foryou hidden>For you</span></h3>
+          <p>Just bookmark this page — or, in Chrome or Edge, click the install icon at the right of the address bar to keep it as an app. For the full experience, open it on your phone.</p>
+        </div>
+      </div>
+
+      <div class="install-all">
+        <button class="install-all__toggle" id="installAllToggle" type="button" aria-expanded="false" aria-controls="installBlocks">
+          <span id="installAllToggleTxt">Using a different browser? See all steps</span>
+          <span class="install-all__chev" aria-hidden="true">▾</span>
+        </button>
       </div>
     </div>
 
@@ -1887,30 +1924,104 @@
         btn.style.display = "none";
       });
 
-      /* Detect the visitor's device from the user agent. */
+      /* Detect the visitor's browser from the user agent, so the sheet
+         shows ONLY the steps that match it. */
       var ua = navigator.userAgent || "";
-      var isIOS = /iphone|ipad|ipod/i.test(ua) ||
+      var isIOSDevice = /iphone|ipad|ipod/i.test(ua) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       var isAndroid = /android/i.test(ua);
-      var device = isIOS ? "ios" : (isAndroid ? "android" : "other");
+      /* In-app browsers (WhatsApp, Facebook, Instagram, Gmail, …) and
+         Android WebViews can't add pages to the home screen. */
+      var inAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Messenger|Twitter|Line\/|Snapchat|Musical_ly|Bytedance|MicroMessenger|; wv\)/i.test(ua);
+      var view;
+      if (inAppBrowser) {
+        view = "inapp";
+      } else if (isIOSDevice) {
+        if (/crios/i.test(ua)) view = "ioschrome";
+        else if (/fxios|edgios|opios/i.test(ua)) view = "inapp";
+        else if (/safari/i.test(ua)) view = "iossafari";
+        else view = "inapp";
+      } else if (isAndroid) {
+        var chromeAndroid = /chrome\/|chromium/i.test(ua) &&
+          !/samsungbrowser|edga|edg\/|opr\/|firefox/i.test(ua);
+        view = chromeAndroid ? "androidchrome" : "inapp";
+      } else if (/mobile/i.test(ua)) {
+        view = "inapp";
+      } else {
+        view = "desktop";
+      }
 
       var blocks = {
-        ios: document.getElementById("installIOS"),
-        android: document.getElementById("installAndroid"),
-        other: document.getElementById("installOther")
+        iossafari: document.getElementById("installIOSSafari"),
+        ioschrome: document.getElementById("installIOSChrome"),
+        androidchrome: document.getElementById("installAndroidChrome"),
+        inapp: document.getElementById("installInApp"),
+        desktop: document.getElementById("installDesktop")
       };
       var container = document.getElementById("installBlocks");
-      var match = blocks[device];
+      var match = blocks[view] || blocks.desktop;
+      function eachBlock(fn) {
+        for (var k in blocks) { if (blocks[k]) fn(blocks[k]); }
+      }
+      function showOnlyMatch() {
+        eachBlock(function (b) { b.hidden = b !== match; });
+      }
       if (match && container) {
         container.insertBefore(match, container.firstChild);
         match.classList.add("install-block--match");
         var badge = match.querySelector("[data-foryou]");
         if (badge) badge.hidden = false;
+        showOnlyMatch();
       }
+
+      /* "See all steps" safety net — collapsed by default; expanding
+         reveals every instruction set, collapsing returns to the match. */
+      var allToggle = document.getElementById("installAllToggle");
+      var allToggleTxt = document.getElementById("installAllToggleTxt");
+      if (allToggle) allToggle.addEventListener("click", function () {
+        var expanded = allToggle.getAttribute("aria-expanded") === "true";
+        if (expanded) {
+          showOnlyMatch();
+          allToggle.setAttribute("aria-expanded", "false");
+          if (allToggleTxt) allToggleTxt.textContent = "Using a different browser? See all steps";
+        } else {
+          eachBlock(function (b) { b.hidden = false; });
+          allToggle.setAttribute("aria-expanded", "true");
+          if (allToggleTxt) allToggleTxt.textContent = "Hide the other steps";
+        }
+      });
+
+      /* Android Chrome: when the browser offers its native install
+         prompt, the sheet offers that button instead of the menu steps. */
+      var nativeWrap = document.getElementById("installNativeWrap");
+      var nativeBtn = document.getElementById("installNativeBtn");
+      var androidSteps = document.getElementById("installAndroidSteps");
+      function refreshAndroidInstall() {
+        if (view !== "androidchrome" || !nativeWrap) return;
+        var has = !!deferredPrompt;
+        nativeWrap.hidden = !has;
+        if (androidSteps) androidSteps.hidden = has;
+      }
+      window.addEventListener("beforeinstallprompt", refreshAndroidInstall);
+      if (nativeBtn) nativeBtn.addEventListener("click", function () {
+        if (!deferredPrompt) { refreshAndroidInstall(); return; }
+        var p = deferredPrompt;
+        deferredPrompt = null;
+        try {
+          p.prompt();
+          if (p.userChoice && p.userChoice.then) {
+            p.userChoice.then(function (choice) {
+              if (choice && choice.outcome === "accepted") closeInstall();
+              refreshAndroidInstall();
+            }, function () { refreshAndroidInstall(); });
+          }
+        } catch (e) { refreshAndroidInstall(); }
+      });
 
       var sheet = document.getElementById("installSheet");
       var backdrop = document.getElementById("installBackdrop");
       function openInstall() {
+        refreshAndroidInstall();
         backdrop.classList.add("open"); sheet.classList.add("open");
         sheet.scrollTop = 0;
       }
