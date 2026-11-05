@@ -132,6 +132,20 @@
       .live-dot--bad { background: var(--amber-dot); }
       .live-line .quiet { font-weight: 400; opacity: 0.9; }
 
+      /* Deep-link note (alert link pointed at a report that's no longer listed) */
+      .deep-note {
+        margin-top: 14px; background: var(--amber-bg); color: var(--ink);
+        border: 1px solid var(--line); border-radius: 12px;
+        padding: 12px 14px; box-shadow: var(--shadow);
+        display: flex; gap: 10px; align-items: flex-start; font-size: 15.5px;
+      }
+      .deep-note[hidden] { display: none; }
+      .deep-note__txt { flex: 1; padding-top: 3px; }
+      .deep-note__close {
+        background: none; border: none; color: var(--ink); flex: none;
+        font-size: 16px; line-height: 1; padding: 6px; min-width: 36px; min-height: 36px;
+      }
+
       /* Map */
       .map-box {
         height: 400px;
@@ -173,6 +187,23 @@
       .spin__pin { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); display: block; }
       .spin--on .spin__pin { transform: scale(1.22); }
       .spin--on .spin__age { background: #1c2a21; color: #fff; }
+
+      /* Deep-linked pin (arrived from an alert tap): enlarged + pulsing ring */
+      .spin { position: relative; }
+      .spin__pin { position: relative; z-index: 1; }
+      .spin__ring {
+        position: absolute; left: 50%; bottom: 2px; z-index: 0;
+        width: 46px; height: 46px; margin-left: -23px;
+        border: 3px solid var(--pine); border-radius: 50%;
+        pointer-events: none;
+        animation: deepPulse 1.6s ease-out infinite;
+      }
+      .spin--deep .spin__pin { transform: scale(1.45); }
+      .spin--deep .spin__age { background: #1c2a21; color: #fff; position: relative; z-index: 1; }
+      @keyframes deepPulse {
+        0% { transform: scale(0.5); opacity: 0.9; }
+        100% { transform: scale(1.15); opacity: 0; }
+      }
 
       /* Selected sighting detail card */
       .detail {
@@ -233,6 +264,7 @@
       .feed-item .line2 { color: var(--muted); font-size: 15px; margin-top: 1px; }
       .feed-item .age { color: var(--muted); font-size: 14px; font-weight: 600; white-space: nowrap; margin-top: 2px; }
       .feed-item.map-selected { outline: 2.5px solid var(--pine); outline-offset: 0; }
+      .feed-item.feed-item--deep { outline: 3px solid var(--amber-dot); outline-offset: 0; background: var(--amber-bg); }
       .feed-item .flaglink {
         background: none; border: none; color: var(--muted);
         font-size: 14px; font-weight: 600; text-decoration: underline;
@@ -497,6 +529,7 @@
       .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
       @media (prefers-reduced-motion: reduce) {
         .toast, .toggle, .toggle::after { transition: none; }
+        .spin__ring { animation: none; opacity: 0.6; transform: scale(0.9); }
       }
     </style>
   </head>
@@ -505,6 +538,11 @@
       <div class="lead">
         <h1>Check before you walk</h1>
         <p>Live map of coyote reports around Playa Vista — Concert Park, the Runway, Bluff Creek and the Ballona edge.</p>
+      </div>
+
+      <div class="deep-note" id="deepLinkNote" role="status" hidden>
+        <span class="deep-note__txt">That report isn't on the map anymore — here are the latest sightings.</span>
+        <button class="deep-note__close" id="deepLinkDismiss" type="button" aria-label="Dismiss">✕</button>
       </div>
 
       <div class="top-actions">
@@ -605,8 +643,8 @@
                 </span>
               </li>
               <li>Tap the <strong>+</strong> in ntfy and subscribe to this topic:<br />
-                <span class="topic">pv-coyote-watch-yr9ghuzora1q</span>
-                <button class="mini-btn" id="copyTopic" type="button">Copy topic</button>
+                <span class="topic" id="ntfyTopic">pv-coyote-watch-yr9ghuzora1q</span>
+                <button class="mini-btn" id="copyTopicBtn" type="button" style="margin-left:8px;">Copy topic</button>
               </li>
               <li>That’s it — new reports nearby now arrive as notifications. Tapping one opens it on the map.</li>
             </ol>
@@ -859,6 +897,84 @@
       var lastIdsKey = "";
       var lastFetchAt = 0;
 
+      /* ---------- Deep link (?sighting=<id>) from ntfy alert taps ---------- */
+      var deepLinkId = null;
+      try {
+        deepLinkId = new URLSearchParams(window.location.search || "").get("sighting");
+      } catch (e) {
+        var dlMatch = /[?&]sighting=([^&]+)/.exec(window.location.search || "");
+        if (dlMatch) { try { deepLinkId = decodeURIComponent(dlMatch[1]); } catch (e2) { deepLinkId = dlMatch[1]; } }
+      }
+      if (deepLinkId) { deepLinkId = String(deepLinkId).trim(); if (!deepLinkId) deepLinkId = null; }
+      var deepLinkHandled = false;  // handled exactly once; auto-refresh never re-centers
+      var deepHighlightId = null;   // sighting that keeps the pulsing/enlarged pin + feed highlight
+      var deepPinnedId = null;      // sighting older than every filter window, force-kept visible
+      var pendingCenter = null;     // one-shot map center, consumed by the next renderMap()
+      var pendingDeepScroll = null; // sighting to scroll to once that render lands
+
+      function clearDeepLinkParam() {
+        try {
+          var params = new URLSearchParams(window.location.search || "");
+          if (!params.has("sighting")) return;
+          params.delete("sighting");
+          var qs = params.toString();
+          window.history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : "") + window.location.hash);
+        } catch (e) {}
+      }
+      function setFilterUI(f) {
+        currentFilter = f;
+        document.querySelectorAll(".chip[data-filter]").forEach(function (c) {
+          c.setAttribute("aria-pressed", c.getAttribute("data-filter") === f ? "true" : "false");
+        });
+      }
+      function smallestFilterFor(s) {
+        var keep = currentFilter, found = null;
+        ["2h", "today", "7d"].forEach(function (f) {
+          if (found) return;
+          currentFilter = f;
+          if (passesFilter(s)) found = f;
+        });
+        currentFilter = keep;
+        return found;
+      }
+      function showDeepLinkNote() {
+        var n = document.getElementById("deepLinkNote");
+        if (n) n.hidden = false;
+      }
+      function handleDeepLink() {
+        deepLinkHandled = true;
+        var target = null;
+        sightings.forEach(function (s) { if (String(s.id) === String(deepLinkId)) target = s; });
+        clearDeepLinkParam();
+        deepLinkId = null;
+        if (!target) { showDeepLinkNote(); return true; }
+        if (!passesFilter(target)) {
+          var needed = smallestFilterFor(target);
+          if (needed) setFilterUI(needed);
+          else { setFilterUI("7d"); deepPinnedId = target.id; }
+        }
+        selectedId = target.id;
+        deepHighlightId = target.id;
+        pendingCenter = { lat: target.lat, lng: target.lng, zoom: 15.5 };
+        pendingDeepScroll = target.id;
+        return true;
+      }
+      function focusDeepLinked(id) {
+        if (selectedId !== id) return; // visitor already tapped something else
+        var targetEl = (typeof detailEl !== "undefined" && detailEl && detailEl.classList.contains("show"))
+          ? detailEl : document.getElementById("mapBox");
+        if (targetEl && targetEl.scrollIntoView) targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (typeof feedEl !== "undefined" && feedEl && feedEl.querySelector) {
+          var item = feedEl.querySelector('.feed-item[data-id="' + id + '"]');
+          if (item) item.classList.add("feed-item--deep");
+        }
+      }
+      var deepDismiss = document.getElementById("deepLinkDismiss");
+      if (deepDismiss) deepDismiss.addEventListener("click", function () {
+        var n = document.getElementById("deepLinkNote");
+        if (n) n.hidden = true;
+      });
+
       function loadSightings() {
         lastFetchAt = Date.now();
         fetch(SB_URL + "/rest/v1/sightings?select=*&order=seen_at.desc&limit=200", { headers: sbHeaders() })
@@ -870,11 +986,21 @@
             var firstLoad = loadState !== "ready";
             sightings = rows.map(rowToSighting);
             if (selectedId && !sightings.some(function (s) { return s.id === selectedId; })) selectedId = null;
+            if (deepHighlightId && !sightings.some(function (s) { return s.id === deepHighlightId; })) deepHighlightId = null;
+            if (deepPinnedId && !sightings.some(function (s) { return s.id === deepPinnedId; })) deepPinnedId = null;
+            var deepHandledNow = false;
+            if (deepLinkId && !deepLinkHandled) deepHandledNow = handleDeepLink();
             var key = sightings.map(function (s) { return s.id; }).join("|");
             loadState = "ready";
             lastUpdatedAt = Date.now();
             refreshFailed = false;
-            if (key !== lastIdsKey || firstLoad) { lastIdsKey = key; renderAll(); }
+            if (key !== lastIdsKey || firstLoad || deepHandledNow) {
+              lastIdsKey = key; renderAll();
+              if (pendingDeepScroll) {
+                var pid = pendingDeepScroll; pendingDeepScroll = null;
+                setTimeout(function () { focusDeepLinked(pid); }, 400);
+              }
+            }
             else { renderLiveLine(); }
           })
           .catch(function () {
@@ -949,7 +1075,8 @@
         return s.time >= now - 7 * 24 * 3600000;
       }
       function visibleSightings() {
-        return sightings.filter(passesFilter).sort(function (a, b) { return b.time - a.time; });
+        return sightings.filter(function (s) { return passesFilter(s) || s.id === deepPinnedId; })
+          .sort(function (a, b) { return b.time - a.time; });
       }
       function countFor(f) {
         var keep = currentFilter; currentFilter = f;
@@ -971,7 +1098,9 @@
       function markerHTML(place) {
         var s = place._sighting;
         var sev = BEHAVIORS[s.behavior].severity;
-        return '<div class="spin' + (place._sel ? " spin--on" : "") + '" style="opacity:' + pinOpacity(s.time) + '">' +
+        var deep = s.id === deepHighlightId;
+        return '<div class="spin' + (place._sel ? " spin--on" : "") + (deep ? " spin--deep" : "") + '" style="opacity:' + pinOpacity(s.time) + '">' +
+          (deep ? '<span class="spin__ring" aria-hidden="true"></span>' : "") +
           '<span class="spin__age">' + esc(pinAge(s.time)) + '</span>' + pinSVG(SEV_COLOR[sev]) + "</div>";
       }
       function showMapFallback() {
@@ -981,6 +1110,7 @@
       }
       function renderMap() {
         var box = document.getElementById("mapBox");
+        var focusCenter = pendingCenter; pendingCenter = null; // one-shot: later renders/refreshes return to the normal view
         if (!window.MapHelpers || !window.HatchMaps) { showMapFallback(); return; }
         if (mapHandle) { try { mapHandle.destroy(); } catch (e) {} mapHandle = null; }
         var vis = visibleSightings();
@@ -990,8 +1120,8 @@
         mapHandle = MapHelpers.mountMap(box, {
           places: places,
           overlays: [landmarkOverlay],
-          center: PV_CENTER,
-          zoom: 14,
+          center: focusCenter ? { lat: focusCenter.lat, lng: focusCenter.lng } : PV_CENTER,
+          zoom: focusCenter ? (focusCenter.zoom || 15.5) : 14,
           baseStyle: darkScheme ? "dark" : "light",
           marker: function (place, index, selected) {
             place._sel = selected || place._sighting.id === selectedId;
@@ -1081,7 +1211,7 @@
         }
         vis.forEach(function (s) {
           var sev = BEHAVIORS[s.behavior].severity;
-          html += '<li><div class="feed-item' + (s.id === selectedId ? " map-selected" : "") + '" data-id="' + s.id + '" role="button" tabindex="0" aria-label="Show ' + esc(s.place || "this sighting") + ' on the map">' +
+          html += '<li><div class="feed-item' + (s.id === selectedId ? " map-selected" : "") + (s.id === deepHighlightId ? " feed-item--deep" : "") + '" data-id="' + s.id + '" role="button" tabindex="0" aria-label="Show ' + esc(s.place || "this sighting") + ' on the map">' +
             '<span class="dot dot--' + sev + '"></span>' +
             '<span class="body"><span class="line1"><strong>' + esc(feedWhen(s)) + '</strong>' + (s.place ? ' — ' + esc(s.place) : '') + '</span>' +
             '<span class="line2" style="display:block;">' + esc(summaryLine(s)) + '</span></span>' +
@@ -1116,6 +1246,7 @@
       }
 
       function selectSighting(id, syncMap) {
+        if (id !== deepHighlightId) deepHighlightId = null;
         selectedId = id;
         renderFeed(); renderDetail(); renderCounts();
         if (syncMap && mapHandle && mapOK) {
@@ -1182,6 +1313,7 @@
       document.querySelectorAll(".chip[data-filter]").forEach(function (chip) {
         chip.addEventListener("click", function () {
           currentFilter = chip.getAttribute("data-filter");
+          deepPinnedId = null;
           document.querySelectorAll(".chip[data-filter]").forEach(function (c) {
             c.setAttribute("aria-pressed", c === chip ? "true" : "false");
           });
@@ -1199,14 +1331,23 @@
         toastTimer = setTimeout(function () { t.classList.remove("show"); }, 4200);
       }
 
-      /* ---------- ntfy topic (alerts are live) ---------- */
-      document.getElementById("copyTopic").addEventListener("click", function () {
-        var topic = "pv-coyote-watch-yr9ghuzora1q";
-        function done(ok) { showToast(ok ? "Topic copied — paste it into the ntfy app." : "Topic is: " + topic); }
+      /* ---------- ntfy topic copy ---------- */
+      document.getElementById("copyTopicBtn").addEventListener("click", function () {
+        var topic = document.getElementById("ntfyTopic").textContent.trim();
+        function done() { showToast("Topic copied — paste it into the ntfy app"); }
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(topic).then(function () { done(true); }, function () { done(false); });
-        } else done(false);
+          navigator.clipboard.writeText(topic).then(done, function () { fallbackCopy(topic); done(); });
+        } else { fallbackCopy(topic); done(); }
       });
+      function fallbackCopy(text) {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+      }
 
       /* ---------- WhatsApp group ---------- */
       document.getElementById("waBtn").addEventListener("click", function () {
