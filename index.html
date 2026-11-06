@@ -582,7 +582,17 @@
       .opt[aria-pressed="true"] { background: var(--pine-deep); border-color: var(--pine-deep); color: #eef7ef; }
       @media (prefers-color-scheme: dark) { .opt[aria-pressed="true"] { color: #0e130f; } }
       .opt--wide { flex: 1 1 46%; text-align: left; }
-      .mini-map-box { height: 210px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--map-bg); margin-top: 10px; }
+      .mini-map-box { height: 210px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--map-bg); margin-top: 10px; position: relative; }
+      .pick-help {
+        margin: 12px 0 0; font-size: 15.5px; font-weight: 700;
+        background: var(--pine-soft); color: var(--ink);
+        border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+      }
+      .pick-pin-wrap { cursor: grab; touch-action: none; display: block; }
+      .pick-pin-wrap:active { cursor: grabbing; }
+      .pick-ghost { position: absolute; z-index: 6; pointer-events: none; transform: translate(-50%, -100%); filter: drop-shadow(0 3px 4px rgba(0,0,0,0.45)); }
+      .ref-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(28, 42, 33, 0.35); border: 1.5px solid rgba(255, 255, 255, 0.75); }
+      .feed-thumb { width: 52px; height: 52px; object-fit: cover; border-radius: 10px; flex: none; border: 1px solid var(--line); margin-top: 2px; }
       .mini-pin {
         width: 20px; height: 20px; border-radius: 50%;
         background: #7b8a7e; border: 3px solid #fff;
@@ -923,7 +933,7 @@
         </button>
       </div>
 
-      <p class="version-line">Playa Vista Coyote Watch · v1.13 · test build</p>
+      <p class="version-line">Playa Vista Coyote Watch · v1.14 · test build</p>
     </div>
 
     <div class="sheet-backdrop" id="sheetBackdrop"></div>
@@ -951,6 +961,7 @@
           </button>
         </div>
         <p class="loc-status" id="locStatus" style="display:none;" role="status"></p>
+        <p class="pick-help" id="pickHelp" style="display:none;">Tap the map where you saw the coyote — the orange pin drops where you tap. After it drops, you can drag the pin to adjust the exact spot.</p>
         <div class="mini-map-box" id="miniMapBox" style="display:none;"></div>
         <button class="mini-btn" id="locWiderBtn" type="button" style="display:none; margin-top:10px;">← Wider view of Playa Vista</button>
       </div>
@@ -1008,7 +1019,7 @@
 
       <div class="field">
         <h3>Photo <span style="color:var(--muted); font-weight:400;">(optional)</span></h3>
-        <p class="hint">Only if you already had one from a safe distance — never approach for a photo.</p>
+        <p class="hint">Only if you already had one from a safe distance — never approach for a photo. Big phone photos are fine: the app shrinks them automatically before posting, and your photo appears on the report for everyone to see.</p>
         <input type="file" id="photoInput" accept="image/*" style="display:none;" />
         <button class="mini-btn" id="photoBtn" type="button">Add a photo</button>
         <div class="photo-preview" id="photoPreview"><img id="photoImg" alt="Your coyote photo preview" /></div>
@@ -1016,7 +1027,7 @@
 
       <div class="field">
         <h3>Your name <span style="color:var(--muted); font-weight:400;">(optional)</span></h3>
-        <input class="name-input" id="nameInput" type="text" autocomplete="name" placeholder="e.g. Vicki F." />
+        <input class="name-input" id="nameInput" type="text" autocomplete="name" placeholder="Your name" />
       </div>
 
       <p class="form-error" id="formError" role="alert"></p>
@@ -1113,7 +1124,7 @@
           </div>
           <div class="field">
             <h3><label for="feedbackName">Your name (optional)</label></h3>
-            <input class="name-input" id="feedbackName" name="name" type="text" autocomplete="name" placeholder="e.g. Vicki F." />
+            <input class="name-input" id="feedbackName" name="name" type="text" autocomplete="name" placeholder="Your name" />
           </div>
           <p class="form-error" id="feedbackError" role="alert"></p>
           <button class="feedback-submit" id="feedbackSubmit" type="submit">Send feedback</button>
@@ -1523,6 +1534,7 @@
           var sev = BEHAVIORS[s.behavior].severity;
           html += '<li><div class="feed-item' + (s.id === selectedId ? " map-selected" : "") + (s.id === deepHighlightId ? " feed-item--deep" : "") + '" data-id="' + s.id + '" role="button" tabindex="0" aria-label="Show ' + esc(s.place || "this sighting") + ' on the map">' +
             '<span class="dot dot--' + sev + '"></span>' +
+            (s.photo ? '<img class="feed-thumb" src="' + esc(s.photo) + '" alt="Photo from this report" loading="lazy" onerror="this.style.display=\'none\'" />' : "") +
             '<span class="body"><span class="line1"><strong>' + esc(feedWhen(s)) + '</strong>' + (s.place ? ' — ' + esc(s.place) : '') + '</span>' +
             '<span class="line2" style="display:block;">' + esc(summaryLine(s)) + '</span></span>' +
             '<span class="age">' + esc(pinAge(s.time)) + '</span>' +
@@ -1544,7 +1556,7 @@
           (s.count > 1 ? '<span class="tag">' + s.count + " coyotes</span>" : "") +
           (s.heading ? '<span class="tag">Heading ' + esc(s.heading) + "</span>" : "") +
           (s.dog ? '<span class="tag">Reporter had a dog</span>' : "") + "</div>" +
-          (s.photo ? '<div class="photo"><img src="' + esc(s.photo) + '" alt="Photo from this coyote report" loading="lazy" /></div>' : "") +
+          (s.photo ? '<div class="photo"><img src="' + esc(s.photo) + '" alt="Photo from this coyote report" loading="lazy" onerror="this.parentNode.style.display=\'none\'" /></div>' : "") +
           '<div class="actions">' +
           '<button class="btn btn--flag" data-flag="' + s.id + '" type="button">Flag this report</button>' +
           (sev === "red" ? '<a class="btn btn--danger-link" href="https://apps.wildlife.ca.gov/wir" target="_blank" rel="noopener">Also file with CDFW</a>' : "") +
@@ -1668,7 +1680,7 @@
       var sheet = document.getElementById("reportSheet");
       var backdrop = document.getElementById("sheetBackdrop");
       function freshForm() {
-        return { lat: null, lng: null, locSource: null, count: "1", behavior: "passing", heading: "", dog: false, photoFile: null, whenMin: 0, whenCustom: null };
+        return { lat: null, lng: null, locSource: null, count: "1", behavior: "passing", heading: "", dog: false, photoFile: null, photoSkip: false, whenMin: 0, whenCustom: null };
       }
       var form = freshForm();
       var miniHandle = null;
@@ -1700,10 +1712,10 @@
         var msg;
         if (source === "gps") {
           msg = mapsUsable()
-            ? "Pin set from your GPS — check it on the map below, and tap a nearby dot to nudge it if it’s a bit off."
+            ? "Pin set from your GPS — check it on the map below. If it’s a bit off, drag the orange pin or tap the map to move it."
             : "Location saved from your GPS. (The little map isn’t available on this device, so the pin can’t be shown — your location is still recorded.)";
         } else {
-          msg = "Pin set — tap a dot to move it, or just continue below.";
+          msg = "Pin set — drag the orange pin or tap the map to move it, or just continue below.";
         }
         if (far) msg += " Heads up: this pin is outside the Playa Vista area. If the coyote was somewhere else, move the pin — but you can still post it exactly as it is.";
         showLocStatus(msg, far);
@@ -1715,61 +1727,186 @@
         return pts;
       }
       var PICK_PIN_SVG = '<svg class="pick-pin" width="30" height="38" viewBox="0 0 30 38" aria-hidden="true"><path d="M15 37C15 37 3 23.5 3 13.5C3 6.6 8.4 1.5 15 1.5C21.6 1.5 27 6.6 27 13.5C27 23.5 15 37 15 37Z" fill="#bc3f0e" stroke="#ffffff" stroke-width="2"/><circle cx="15" cy="13.5" r="4.6" fill="#ffffff"/></svg>';
+      var PICK_PIN_HTML = '<div class="pick-pin-wrap" title="Drag to adjust">' + PICK_PIN_SVG + "</div>";
+      var pickHelp = document.getElementById("pickHelp");
+
+      /* ----- Tap-to-place picker -----
+         The map library only reports taps on its own markers, not raw map
+         taps, and offers no draggable markers. So the picker plants two
+         tiny reference dots at known coordinates; their on-screen pixel
+         positions (read from the marker elements the library positions)
+         define an exact pixel → lat/lng conversion for the Web Mercator
+         map. A plain tap anywhere then drops the pin at that spot, and the
+         pin can be dragged (a ghost follows the finger/mouse; the drop
+         point converts the same way). If the reference dots can't be read
+         (library internals changed), the picker falls back to the older
+         tap-a-dot grid so reporting never breaks. */
+      var REF_A = { lat: 33.9950, lng: -118.4520 };
+      var REF_B = { lat: 33.9550, lng: -118.3820 };
+      function mercY(lat) { var r = lat * Math.PI / 180; return Math.log(Math.tan(Math.PI / 4 + r / 2)); }
+      function latFromMerc(y) { return (2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180 / Math.PI; }
+      function markerPixel(markerEl) {
+        if (!markerEl) return null;
+        var t = markerEl.style.transform || "";
+        var ms = t.match(/translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)/g);
+        if (!ms || !ms.length) return null;
+        var nums = ms[ms.length - 1].match(/-?[\d.]+/g);
+        if (!nums || nums.length < 2) return null;
+        return { x: parseFloat(nums[0]), y: parseFloat(nums[1]) };
+      }
+      function pixelToLatLng(x, y) {
+        try {
+          var aEl = miniBox.querySelector(".ref-a");
+          var bEl = miniBox.querySelector(".ref-b");
+          if (!aEl || !bEl) return null;
+          var aM = aEl.closest ? aEl.closest(".maplibregl-marker") : null;
+          var bM = bEl.closest ? bEl.closest(".maplibregl-marker") : null;
+          var pa = markerPixel(aM), pb = markerPixel(bM);
+          if (!pa || !pb) return null;
+          if (Math.abs(pb.x - pa.x) < 20 || Math.abs(pb.y - pa.y) < 20) return null;
+          var lng = REF_A.lng + (x - pa.x) * (REF_B.lng - REF_A.lng) / (pb.x - pa.x);
+          var mA = mercY(REF_A.lat), mB = mercY(REF_B.lat);
+          var lat = latFromMerc(mA + (y - pa.y) * (mB - mA) / (pb.y - pa.y));
+          if (!isFinite(lat) || !isFinite(lng)) return null;
+          if (lat < 33.5 || lat > 34.5 || lng < -118.9 || lng > -117.9) return null;
+          return { lat: lat, lng: lng };
+        } catch (e) { return null; }
+      }
+
       function mountPicker() {
-        if (!mapsUsable()) { miniBox.style.display = "none"; return; }
+        if (!mapsUsable()) { miniBox.style.display = "none"; if (pickHelp) pickHelp.style.display = "none"; return; }
         miniBox.style.display = "block";
+        if (pickHelp) pickHelp.style.display = picker.mode === "tap" ? "block" : "none";
         if (miniHandle) { try { miniHandle.destroy(); } catch (e) {} miniHandle = null; }
-        var mine = picker.grid.slice();
+        var mine;
+        if (picker.mode === "grid") {
+          mine = picker.grid.slice();
+        } else {
+          mine = [
+            { lat: REF_A.lat, lng: REF_A.lng, _ref: "a" },
+            { lat: REF_B.lat, lng: REF_B.lng, _ref: "b" }
+          ];
+        }
         if (form.lat != null) mine.push({ lat: form.lat, lng: form.lng, _pin: true });
         picker.places = mine;
-        widerBtn.style.display = picker.level === 2 ? "inline-block" : "none";
+        widerBtn.style.display = picker.zoom > 14.5 ? "inline-block" : "none";
         miniHandle = MapHelpers.mountMap(miniBox, {
           places: mine.map(function (p) {
-            return { label: "", lat: p.lat, lng: p.lng, _grid: !!p._grid, _pin: !!p._pin };
+            return { label: "", lat: p.lat, lng: p.lng, _grid: !!p._grid, _pin: !!p._pin, _ref: p._ref || "" };
           }),
           center: { lat: picker.centerLat, lng: picker.centerLng },
           zoom: picker.zoom,
           baseStyle: darkScheme ? "dark" : "light",
           marker: function (place, index, selected) {
-            if (place._pin) return PICK_PIN_SVG;
+            if (place._pin) return PICK_PIN_HTML;
+            if (place._ref) return '<div class="ref-dot ref-' + place._ref + '" aria-hidden="true"></div>';
             return '<div class="grid-dot' + (selected ? " grid-dot--on" : "") + '"></div>';
           },
           onSelectPlace: function (index) {
+            if (!picker || picker.mode !== "grid") return; // tap mode is handled by the box listeners below
             if (index === null || index === undefined) return;
             var p = picker.places[index];
             if (!p || p._pin) return;
             setPin(p.lat, p.lng, "map");
-            if (picker.level === 1) openPickerLevel2(p.lat, p.lng);
+            if (picker.level === 1) openGridPicker(2, p.lat, p.lng);
             else mountPicker();
           }
-        }, function () { miniBox.style.display = "none"; });
+        }, function () { miniBox.style.display = "none"; if (pickHelp) pickHelp.style.display = "none"; });
         if (miniHandle && form.lat != null) { try { miniHandle.selectPlace(mine.length - 1); } catch (e) {} }
       }
-      function openPickerLevel1() {
-        picker = { level: 1, centerLat: PV_CENTER.lat, centerLng: PV_CENTER.lng, zoom: 13.8,
-          grid: gridAround(PV_CENTER.lat, PV_CENTER.lng, 0.0024, 0.0029, 7, 11), places: [] };
+      function openTapPicker(lat, lng, zoom) {
+        picker = { mode: "tap", level: 0, centerLat: lat, centerLng: lng, zoom: zoom, grid: [], places: [], tapRetried: false };
         mountPicker();
       }
-      function openPickerLevel2(lat, lng) {
-        picker = { level: 2, centerLat: lat, centerLng: lng, zoom: 16,
-          grid: gridAround(lat, lng, 0.00036, 0.00043, 7, 7), places: [] };
+      function openGridPicker(level, lat, lng) {
+        if (level === 2 && lat != null) {
+          picker = { mode: "grid", level: 2, centerLat: lat, centerLng: lng, zoom: 16,
+            grid: gridAround(lat, lng, 0.00036, 0.00043, 7, 7), places: [] };
+        } else {
+          picker = { mode: "grid", level: 1, centerLat: PV_CENTER.lat, centerLng: PV_CENTER.lng, zoom: 13.8,
+            grid: gridAround(PV_CENTER.lat, PV_CENTER.lng, 0.0024, 0.0029, 7, 11), places: [] };
+        }
         mountPicker();
       }
-      widerBtn.addEventListener("click", function () { openPickerLevel1(); });
+      widerBtn.addEventListener("click", function () {
+        if (picker && picker.mode === "grid") openGridPicker(1);
+        else openTapPicker(PV_CENTER.lat, PV_CENTER.lng, 14.2);
+      });
+
+      /* Tap (or click) anywhere on the picker map drops the pin there.
+         A press that moved is a map pan, not a tap — ignore those. */
+      var downPos = null;
+      var suppressClickUntil = 0;
+      miniBox.addEventListener("pointerdown", function (ev) { downPos = { x: ev.clientX, y: ev.clientY }; });
+      miniBox.addEventListener("click", function (ev) {
+        if (!picker || picker.mode !== "tap") return;
+        if (Date.now() < suppressClickUntil) return;
+        if (downPos && Math.sqrt(Math.pow(ev.clientX - downPos.x, 2) + Math.pow(ev.clientY - downPos.y, 2)) > 9) return;
+        if (ev.target.closest && ev.target.closest(".pick-pin-wrap")) return;
+        var rect = miniBox.getBoundingClientRect();
+        var ll = pixelToLatLng(ev.clientX - rect.left, ev.clientY - rect.top);
+        if (!ll) {
+          if (!picker.tapRetried) {
+            picker.tapRetried = true;
+            showLocStatus("One moment — the map is still loading. Tap the spot again in a second.", false);
+          } else {
+            showLocStatus("This map couldn’t take a direct tap — tap one of the dots nearest the spot, then tap a closer dot to fine-tune it.", false);
+            openGridPicker(form.lat != null ? 2 : 1, form.lat, form.lng);
+          }
+          return;
+        }
+        setPin(ll.lat, ll.lng, "map");
+        openTapPicker(ll.lat, ll.lng, Math.max(picker.zoom, 16));
+      });
+
+      /* Drag the placed pin to adjust it: a ghost pin follows the pointer,
+         and letting go converts the drop point back to coordinates. */
+      miniBox.addEventListener("pointerdown", function (ev) {
+        var wrap = ev.target.closest ? ev.target.closest(".pick-pin-wrap") : null;
+        if (!wrap || !picker || form.lat == null) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        var ghost = document.createElement("div");
+        ghost.className = "pick-ghost";
+        ghost.innerHTML = PICK_PIN_SVG;
+        miniBox.appendChild(ghost);
+        function moveGhost(e2) {
+          var r = miniBox.getBoundingClientRect();
+          ghost.style.left = (e2.clientX - r.left) + "px";
+          ghost.style.top = (e2.clientY - r.top) + "px";
+        }
+        moveGhost(ev);
+        function onMove(e2) { moveGhost(e2); }
+        function onUp(e2) {
+          document.removeEventListener("pointermove", onMove);
+          document.removeEventListener("pointerup", onUp);
+          var r = miniBox.getBoundingClientRect();
+          var x = e2.clientX - r.left, y = e2.clientY - r.top;
+          if (ghost.parentNode) ghost.parentNode.removeChild(ghost);
+          suppressClickUntil = Date.now() + 500;
+          var ll = pixelToLatLng(x, y);
+          if (ll) {
+            setPin(ll.lat, ll.lng, "map");
+            openTapPicker(ll.lat, ll.lng, picker.zoom);
+          }
+        }
+        document.addEventListener("pointermove", onMove);
+        document.addEventListener("pointerup", onUp);
+      });
 
       document.getElementById("locGpsBtn").addEventListener("click", function () {
         if (!navigator.geolocation) {
           showLocStatus("This phone can’t share its location — no problem, pick the point on the map instead.", false);
-          if (mapsUsable()) openPickerLevel1();
+          if (mapsUsable()) openTapPicker(PV_CENTER.lat, PV_CENTER.lng, 14.2);
           return;
         }
         showLocStatus("Getting your location…", false);
         navigator.geolocation.getCurrentPosition(function (pos) {
           setPin(pos.coords.latitude, pos.coords.longitude, "gps");
-          if (mapsUsable()) openPickerLevel2(form.lat, form.lng);
+          if (mapsUsable()) openTapPicker(form.lat, form.lng, 16.2);
         }, function () {
           showLocStatus("Couldn’t get your location — permission may be off, or it timed out. No problem: pick the point on the map instead.", false);
-          if (mapsUsable()) openPickerLevel1();
+          if (mapsUsable()) openTapPicker(PV_CENTER.lat, PV_CENTER.lng, 14.2);
         }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
       });
       document.getElementById("locMapBtn").addEventListener("click", function () {
@@ -1777,8 +1914,11 @@
           showLocStatus("The map isn’t available on this device — try “Use my location” instead.", false);
           return;
         }
-        if (form.lat != null) openPickerLevel2(form.lat, form.lng);
-        else openPickerLevel1();
+        if (form.lat != null) openTapPicker(form.lat, form.lng, 16.2);
+        else {
+          showLocStatus("Tap the map where you saw the coyote — the orange pin drops where you tap.", false);
+          openTapPicker(PV_CENTER.lat, PV_CENTER.lng, 14.2);
+        }
       });
 
       /* ----- When did you see it? ----- */
@@ -1841,6 +1981,7 @@
         if (miniHandle) { try { miniHandle.destroy(); } catch (e) {} miniHandle = null; }
         miniBox.style.display = "none";
         widerBtn.style.display = "none";
+        if (pickHelp) pickHelp.style.display = "none";
         locStatusEl.style.display = "none";
         locStatusEl.textContent = "";
         syncLocButtons();
@@ -1850,6 +1991,7 @@
         ferr.textContent = ""; ferr.classList.remove("show");
         document.getElementById("photoPreview").classList.remove("show");
         document.getElementById("photoInput").value = "";
+        document.getElementById("photoBtn").textContent = "Add a photo";
         document.getElementById("nameInput").value = "";
         document.getElementById("dogToggle").setAttribute("aria-pressed", "false");
         [["countOpts", "count", "1"], ["behaviorOpts", "behavior", "passing"], ["headingOpts", "heading", ""]].forEach(function (cfg) {
@@ -1862,6 +2004,7 @@
       }
       function closeSheet() {
         backdrop.classList.remove("open"); sheet.classList.remove("open");
+        if (pickHelp) pickHelp.style.display = "none";
         if (miniHandle) { try { miniHandle.destroy(); } catch (e) {} miniHandle = null; }
       }
       document.getElementById("openReport").addEventListener("click", openSheet);
@@ -1893,6 +2036,10 @@
         var f = this.files && this.files[0];
         if (!f) return;
         form.photoFile = f;
+        form.photoSkip = false;
+        document.getElementById("photoBtn").textContent = "Change photo";
+        var ferr = document.getElementById("formError");
+        ferr.textContent = ""; ferr.classList.remove("show");
         var r = new FileReader();
         r.onload = function () {
           document.getElementById("photoImg").src = r.result;
@@ -1901,13 +2048,58 @@
         r.readAsDataURL(f);
       });
 
-      function uploadPhoto(file) {
-        var ext = (file.name && file.name.indexOf(".") > -1) ? file.name.split(".").pop() : "jpg";
-        var fname = "r" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + ext;
+      /* Phone originals are the problem this fixes: they're commonly
+         5–10 MB (over the photo bucket's 5 MB limit, so the upload was
+         refused and the sighting posted with no photo), and iPhone HEIC
+         files either get refused or can't be displayed by other browsers
+         at all. So every photo is decoded, shrunk to at most 1600px on
+         its long edge, and re-encoded as a modest JPEG before upload —
+         a few hundred KB, accepted by the bucket, viewable everywhere. */
+      function preparePhoto(file) {
+        var url = URL.createObjectURL(file);
+        var decoded = new Promise(function (resolve, reject) {
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var w = img.naturalWidth, h = img.naturalHeight;
+              if (!w || !h) throw new Error("unreadable image");
+              var scale = Math.min(1, 1600 / Math.max(w, h));
+              var canvas = document.createElement("canvas");
+              canvas.width = Math.max(1, Math.round(w * scale));
+              canvas.height = Math.max(1, Math.round(h * scale));
+              canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+              URL.revokeObjectURL(url);
+              if (canvas.toBlob) {
+                canvas.toBlob(function (blob) {
+                  if (blob) resolve(blob); else reject(new Error("convert failed"));
+                }, "image/jpeg", 0.82);
+              } else {
+                var bin = atob(canvas.toDataURL("image/jpeg", 0.82).split(",")[1]);
+                var bytes = new Uint8Array(bin.length);
+                for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                resolve(new Blob([bytes], { type: "image/jpeg" }));
+              }
+            } catch (e) { URL.revokeObjectURL(url); reject(e); }
+          };
+          img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("decode failed")); };
+          img.src = url;
+        });
+        return decoded.catch(function (err) {
+          /* The browser couldn't decode it (e.g. an HEIC opened in Chrome).
+             Fall back to the original only when it's already a web-friendly
+             type comfortably under the bucket limit. */
+          var okTypes = { "image/jpeg": 1, "image/png": 1, "image/webp": 1 };
+          if (file && okTypes[file.type] && file.size <= 4500000) return file;
+          throw err;
+        });
+      }
+
+      function uploadPhoto(blob) {
+        var fname = "r" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
         return fetch(SB_URL + "/storage/v1/object/sighting-photos/" + encodeURIComponent(fname), {
           method: "POST",
-          headers: sbHeaders({ "Content-Type": file.type || "image/jpeg" }),
-          body: file
+          headers: sbHeaders({ "Content-Type": "image/jpeg" }),
+          body: blob
         }).then(function (res) {
           if (!res.ok) throw new Error("HTTP " + res.status);
           return res.json().catch(function () { return {}; });
@@ -1930,12 +2122,24 @@
         var lat = form.lat, lng = form.lng;
         var name = document.getElementById("nameInput").value.trim();
         var countInt = form.count === "3+" ? 3 : parseInt(form.count, 10);
-        btn.disabled = true; btn.textContent = "Posting…";
+        var wantPhoto = !!(form.photoFile && !form.photoSkip);
+        btn.disabled = true; btn.textContent = wantPhoto ? "Uploading photo…" : "Posting…";
         var photoFailed = false;
-        var photoStep = form.photoFile
-          ? uploadPhoto(form.photoFile).catch(function () { photoFailed = true; return null; })
+        var photoStep = wantPhoto
+          ? preparePhoto(form.photoFile).then(uploadPhoto).catch(function () { photoFailed = true; return null; })
           : Promise.resolve(null);
         photoStep.then(function (photoPath) {
+          if (photoFailed) {
+            /* Never post silently without the photo again: keep the form
+               open and let the person choose — post without it, or pick a
+               different photo. A second tap on Post goes ahead photo-free. */
+            form.photoSkip = true;
+            btn.disabled = false; btn.textContent = "Post this sighting";
+            errEl.textContent = "Your sighting is ready, but the photo couldn’t be uploaded — it may be a type this site can’t use (like a live photo or GIF), or the connection dropped. Tap “Post this sighting” again to post without the photo, or tap “Change photo” above to choose a different one.";
+            errEl.classList.add("show");
+            errEl.scrollIntoView({ behavior: "smooth", block: "center" });
+            return null;
+          }
           var payload = {
             seen_at: new Date(chosenSeenMs()).toISOString(),
             lat: lat, lng: lng, place_label: null,
@@ -1952,6 +2156,7 @@
             return res.json();
           });
         }).then(function (rows) {
+          if (!rows) return; // photo-upload pause above — nothing posted yet
           var s = rowToSighting(rows[0]);
           sightings.unshift(s);
           lastIdsKey = sightings.map(function (x) { return x.id; }).join("|");
@@ -1967,9 +2172,10 @@
           selectedId = s.id;
           renderAll();
           var mbox = document.getElementById("mapBox");
-          (mbox.offsetParent !== null && mbox.style.display !== "none" ? mbox : detailEl)
-            .scrollIntoView({ behavior: "smooth", block: "center" });
-          showToast(photoFailed ? "Posted — your pin is live on the map, but the photo didn't attach." : "Posted — your pin is live on the map.");
+          var scrollTarget = (s.photo && detailEl.classList.contains("show")) ? detailEl
+            : (mbox.offsetParent !== null && mbox.style.display !== "none" ? mbox : detailEl);
+          scrollTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+          showToast(s.photo ? "Posted — your pin and photo are live on the map." : "Posted — your pin is live on the map.");
         }).catch(function (err) {
           errEl.textContent = (err && err.message) ? err.message : "Something went wrong posting. Your details are still in the form — try again.";
           errEl.classList.add("show");
