@@ -417,6 +417,43 @@
       .safety .fineprint { font-size: 13.5px; opacity: 0.8; padding-bottom: 12px; }
       .version-line { text-align: center; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
 
+      /* Feedback (bottom button + sheet) */
+      .feedback-cta { margin: 18px 0 0; text-align: center; }
+      .feedback-bottom-btn {
+        border: 1.5px solid var(--pine); background: transparent; color: var(--pine);
+        border-radius: 12px; padding: 12px 22px; min-height: 52px;
+        font-weight: 700; font-size: 16px;
+        display: inline-flex; align-items: center; gap: 8px;
+      }
+      .feedback-bottom-btn:active { background: var(--pine-soft); }
+      .feedback-textarea {
+        width: 100%; padding: 14px 16px; min-height: 130px; font: inherit;
+        border: 1.5px solid var(--line); border-radius: 12px;
+        background: var(--card); color: var(--ink); resize: vertical;
+      }
+      .feedback-char-count { color: var(--muted); font-size: 13.5px; text-align: right; margin: 6px 0 0; }
+      .feedback-submit {
+        width: 100%; min-height: 60px; margin-top: 26px;
+        background: var(--pine-deep); color: #eef7ef; border: none; border-radius: 16px;
+        font-family: "Archivo", sans-serif; font-size: 19px; font-weight: 800;
+      }
+      @media (prefers-color-scheme: dark) { .feedback-submit { color: #0e130f; } }
+      .feedback-submit:disabled { opacity: 0.6; }
+      .feedback-thanks { text-align: center; padding: 18px 0 8px; }
+      .feedback-thanks .thanks-ic {
+        width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 14px;
+        background: var(--green-bg); color: var(--green);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .feedback-thanks h2 { font-size: 23px; font-weight: 800; }
+      .feedback-thanks p { color: var(--muted); margin: 8px 0 0; font-size: 16px; }
+      .feedback-thanks .feedback-close-btn {
+        width: 100%; min-height: 56px; margin-top: 22px;
+        background: var(--pine-deep); color: #eef7ef; border: none; border-radius: 14px;
+        font-family: "Archivo", sans-serif; font-size: 17.5px; font-weight: 800;
+      }
+      @media (prefers-color-scheme: dark) { .feedback-thanks .feedback-close-btn { color: #0e130f; } }
+
       /* Title bar (site name + menu, top of page) */
       .titlebar { background: #1d3b2a; color: #fff9e8; }
       .titlebar__inner {
@@ -718,6 +755,16 @@
                 </span>
                 <span class="menu-item__chev" aria-hidden="true">›</span>
               </button>
+              <button class="menu-item" id="menuFeedbackBtn" type="button" role="menuitem">
+                <span class="menu-item__ic" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H12l-4.6 3.8c-.5.4-1.4.1-1.4-.6V16H6.5A2.5 2.5 0 0 1 4 13.5v-8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8h8M8 11.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </span>
+                <span class="menu-item__txt">
+                  <span class="menu-item__title">Send feedback</span>
+                  <span class="menu-item__sub">Tell us what’s working, what’s not, or what you’d like added.</span>
+                </span>
+                <span class="menu-item__chev" aria-hidden="true">›</span>
+              </button>
             </div>
         </div>
       </div>
@@ -868,7 +915,14 @@
         <p class="fineprint">A healthy coyote passing through is normal for Playa Vista — the Ballona Wetlands are its home turf. This tracker is about knowing before you walk, not about removing wildlife.</p>
       </div>
 
-      <p class="version-line">Playa Vista Coyote Watch · v1.11 · test build</p>
+      <div class="feedback-cta">
+        <button class="feedback-bottom-btn" id="feedbackBtnBottom" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H12l-4.6 3.8c-.5.4-1.4.1-1.4-.6V16H6.5A2.5 2.5 0 0 1 4 13.5v-8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8h8M8 11.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Send feedback
+        </button>
+      </div>
+
+      <p class="version-line">Playa Vista Coyote Watch · v1.12 · test build</p>
     </div>
 
     <div class="sheet-backdrop" id="sheetBackdrop"></div>
@@ -1041,6 +1095,37 @@
       <p class="share-url">https://playavista99.github.io/playa-vista-coyote-watch/</p>
       <button class="share-copy-btn" id="copyShareLinkBtn" type="button">Copy link</button>
       <p class="hint" style="text-align:center; margin-top:10px;">Or copy the link and send it by text or email.</p>
+    </div>
+
+    <div class="sheet-backdrop" id="feedbackBackdrop"></div>
+    <div class="sheet" id="feedbackSheet" role="dialog" aria-modal="true" aria-labelledby="feedbackH">
+      <div class="sheet__grab"></div>
+      <div class="close-row"><button class="icon-btn" id="closeFeedback" type="button" aria-label="Close feedback form">✕</button></div>
+      <div id="feedbackFormWrap">
+        <h2 id="feedbackH">Site feedback</h2>
+        <p class="sheet-sub">Tell us what’s working, what’s not, or what you’d like to see added.</p>
+        <form id="feedbackForm" novalidate>
+          <div class="field">
+            <h3><label for="feedbackMessage">Your feedback</label></h3>
+            <textarea class="feedback-textarea" id="feedbackMessage" name="message" rows="6" maxlength="2000" required placeholder="Type your feedback here…" aria-describedby="feedbackCharCount"></textarea>
+            <p class="feedback-char-count" id="feedbackCharCount">0 / 2000</p>
+          </div>
+          <div class="field">
+            <h3><label for="feedbackName">Your name (optional)</label></h3>
+            <input class="name-input" id="feedbackName" name="name" type="text" autocomplete="name" placeholder="e.g. Vicki F." />
+          </div>
+          <p class="form-error" id="feedbackError" role="alert"></p>
+          <button class="feedback-submit" id="feedbackSubmit" type="submit">Send feedback</button>
+        </form>
+      </div>
+      <div class="feedback-thanks" id="feedbackThanks" hidden>
+        <div class="thanks-ic" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4.5 12.5 10 18 19.5 6.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2>Thanks! Your feedback was sent.</h2>
+        <p>We read every note — it helps make Coyote Watch better for the neighborhood.</p>
+        <button class="feedback-close-btn" id="feedbackThanksClose" type="button">Close</button>
+      </div>
     </div>
 
     <div class="toast" id="toast" role="status"></div>
@@ -2186,6 +2271,90 @@
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(SHARE_URL).then(done, function () { fallbackCopy(SHARE_URL); done(); });
         } else { fallbackCopy(SHARE_URL); done(); }
+      });
+
+      /* ---------- Site feedback ---------- */
+      var FB_SB_URL = "https://wvmzxprjngtplpjnfbwf.supabase.co";
+      var FB_SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2bXp4cHJqbmd0cGxwam5mYndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4MTUwMzUsImV4cCI6MjEwOTM5MTAzNX0.IDG0lhz5rb2wQuvsw0HiK-O5V_3pFK8O5w0OKQoDMos";
+      var feedbackSheet = document.getElementById("feedbackSheet");
+      var feedbackBackdrop = document.getElementById("feedbackBackdrop");
+      var feedbackFormWrap = document.getElementById("feedbackFormWrap");
+      var feedbackThanks = document.getElementById("feedbackThanks");
+      var feedbackForm = document.getElementById("feedbackForm");
+      var feedbackMessage = document.getElementById("feedbackMessage");
+      var feedbackName = document.getElementById("feedbackName");
+      var feedbackError = document.getElementById("feedbackError");
+      var feedbackSubmit = document.getElementById("feedbackSubmit");
+      var feedbackCharCount = document.getElementById("feedbackCharCount");
+      var feedbackSent = false;
+      function updateFeedbackCount() {
+        if (feedbackCharCount && feedbackMessage) feedbackCharCount.textContent = feedbackMessage.value.length + " / 2000";
+      }
+      function openFeedback() {
+        if (feedbackSent) {
+          /* A previous submission went through — start fresh next time. */
+          feedbackSent = false;
+          if (feedbackForm) feedbackForm.reset();
+          updateFeedbackCount();
+          if (feedbackFormWrap) feedbackFormWrap.hidden = false;
+          if (feedbackThanks) feedbackThanks.hidden = true;
+        }
+        if (feedbackError) { feedbackError.textContent = ""; feedbackError.classList.remove("show"); }
+        feedbackBackdrop.classList.add("open"); feedbackSheet.classList.add("open");
+        feedbackSheet.scrollTop = 0;
+      }
+      function closeFeedback() {
+        feedbackBackdrop.classList.remove("open"); feedbackSheet.classList.remove("open");
+      }
+      var menuFeedbackItem = document.getElementById("menuFeedbackBtn");
+      if (menuFeedbackItem) menuFeedbackItem.addEventListener("click", function () {
+        closeMenu();
+        openFeedback();
+      });
+      var bottomFeedbackBtn = document.getElementById("feedbackBtnBottom");
+      if (bottomFeedbackBtn) bottomFeedbackBtn.addEventListener("click", openFeedback);
+      document.getElementById("closeFeedback").addEventListener("click", closeFeedback);
+      var thanksCloseBtn = document.getElementById("feedbackThanksClose");
+      if (thanksCloseBtn) thanksCloseBtn.addEventListener("click", closeFeedback);
+      feedbackBackdrop.addEventListener("click", closeFeedback);
+      document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") closeFeedback(); });
+      if (feedbackMessage) feedbackMessage.addEventListener("input", updateFeedbackCount);
+      if (feedbackForm) feedbackForm.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var message = feedbackMessage.value.trim();
+        feedbackError.textContent = ""; feedbackError.classList.remove("show");
+        if (!message) {
+          feedbackError.textContent = "Please write a little feedback first, then tap Send.";
+          feedbackError.classList.add("show");
+          feedbackMessage.focus();
+          return;
+        }
+        if (message.length > 2000) message = message.slice(0, 2000);
+        var nameVal = feedbackName.value.trim();
+        feedbackSubmit.disabled = true;
+        feedbackSubmit.textContent = "Sending…";
+        fetch(FB_SB_URL + "/rest/v1/feedback", {
+          method: "POST",
+          headers: {
+            apikey: FB_SB_KEY,
+            Authorization: "Bearer " + FB_SB_KEY,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({ message: message, name: nameVal ? nameVal : null })
+        }).then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          feedbackSent = true;
+          if (feedbackFormWrap) feedbackFormWrap.hidden = true;
+          if (feedbackThanks) feedbackThanks.hidden = false;
+          feedbackSheet.scrollTop = 0;
+        }).catch(function () {
+          feedbackError.textContent = "Sorry — your feedback couldn’t be sent. Your text is still here, so please check your connection and try Send again.";
+          feedbackError.classList.add("show");
+        }).finally(function () {
+          feedbackSubmit.disabled = false;
+          feedbackSubmit.textContent = "Send feedback";
+        });
       });
     })();
     </script>
