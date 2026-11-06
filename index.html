@@ -427,6 +427,30 @@
         box-shadow: 0 8px 22px rgba(28, 42, 33, 0.16), 0 2px 6px rgba(28, 42, 33, 0.10);
       }
       .feedback-bottom-btn:active { background: #f6ebc9; }
+      /* Feedback sheet: same cream panel as the header menu (#fff9e8),
+         in both light and dark mode — the generic .sheet uses the page
+         background, which made this panel blend in with the site. Local
+         palette pins keep text, inputs and buttons readable on cream. */
+      #feedbackSheet {
+        background: #fff9e8; color: #1c2a21;
+        border-top: 1px solid #e3d5ae;
+        --bg: #fff9e8;
+        --card: #ffffff;
+        --card-2: #f6ebc9;
+        --ink: #1c2a21;
+        --muted: #54655a;
+        --line: #e3d5ae;
+        --pine: #1e6b45;
+        --pine-deep: #14532d;
+        --green: #2e7d32;
+        --green-bg: #e6f2e6;
+        --red: #b3261e;
+        --red-bg: #fdecea;
+      }
+      #feedbackSheet .sheet__grab { background: #e3d5ae; }
+      #feedbackSheet .icon-btn { background: #ffffff; border-color: #e3d5ae; color: #1c2a21; }
+      #feedbackSheet .feedback-submit { background: #14532d; color: #eef7ef; }
+      #feedbackSheet .feedback-thanks .feedback-close-btn { background: #14532d; color: #eef7ef; }
       .feedback-textarea {
         width: 100%; padding: 14px 16px; min-height: 130px; font: inherit;
         border: 1.5px solid var(--line); border-radius: 12px;
@@ -933,7 +957,7 @@
         </button>
       </div>
 
-      <p class="version-line">Playa Vista Coyote Watch · v1.14 · test build</p>
+      <p class="version-line">Playa Vista Coyote Watch · v1.15 · test build</p>
     </div>
 
     <div class="sheet-backdrop" id="sheetBackdrop"></div>
